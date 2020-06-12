@@ -393,6 +393,8 @@ int main(int argc, char *argv[])
       draw_found_words();
     }
     else{
+      draw_found_words();
+
       if(event.xany.window == tf_num_window){
         if(event.type == KeyPress){
           set_num_of_word((char)event.xkey.keycode - 10);
@@ -417,9 +419,6 @@ int main(int argc, char *argv[])
       draw_found_words();
       XNextEvent(display, &event);
     }
-
-    //nanosleep(1000000000);
-
   }
 
   return 0;
