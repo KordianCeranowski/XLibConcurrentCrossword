@@ -14,9 +14,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Memory Sharing
 
-int *already_found;
-
 #define KEY 123461
+int *already_found;
 int shared_id;
 
 void initialize_shared_memory(){
@@ -44,6 +43,10 @@ void show_state(){
   printf("\b\b]\n");
 }
 ////////////////////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////////////////////////////////////////////////////
+// XLib Variables
 
 Display *display;
 int screen;
@@ -81,6 +84,8 @@ int tf_size_y = 30;
 int tf_text_num_offset = 10;
 Window tf_root_window;
 unsigned int tf_depth = 0;
+////////////////////////////////////////////////////////////////////////////////
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // One time setup
@@ -208,6 +213,7 @@ void draw_multiple_lines(int x, int y, int h, char texts[2 + COUNT_OF_PASSWORDS]
 }
 ////////////////////////////////////////////////////////////////////////////////
 
+
 ////////////////////////////////////////////////////////////////////////////////
 // Directly used functions
 void draw_word_table(x, y, x_diff, y_diff){
@@ -268,6 +274,7 @@ void draw_found_words(){
 }
 ////////////////////////////////////////////////////////////////////////////////
 
+
 ////////////////////////////////////////////////////////////////////////////////
 // Variables
 int num_of_word = -1;
@@ -276,7 +283,6 @@ void set_num_of_word(char new_num_of_word){
     num_of_word = new_num_of_word;
 
     char* temp = (char*)num_of_word + 49;
-    printf("xddd\n" );
     XDrawImageString(display, tf_num_window, gc,
       12,18,
       &temp, 1);
@@ -298,7 +304,6 @@ void reset_pass(){
   }
 }
 void type_letter(){
-  printf("%i\n", bytes[0]);
   if(bytes[0] == 8 && position_in_pass > 0){
     position_in_pass--;
     typed_pass[position_in_pass] = (char)32;
@@ -313,7 +318,6 @@ void type_letter(){
     &typed_pass, MAX_IN_SIZE);
 }
 ////////////////////////////////////////////////////////////////////////////////
-
 
 
 
@@ -332,13 +336,12 @@ int main(int argc, char *argv[])
 
     if(event.xany.window == tf_num_window){
       if(event.type == KeyPress){
-        set_num_of_word((char)((char)event.xkey.keycode - 10));
+        set_num_of_word((char)event.xkey.keycode - 10);
       }
     }
 
     if(event.xany.window == tf_text_window){
       if(event.type == KeyPress){
-        printf("Key text: %x\n", event.xkey.keycode);
         count = XLookupString(&event.xkey, bytes, 3, &character, &xComposeStatus);
         type_letter();
       }
@@ -349,7 +352,6 @@ int main(int argc, char *argv[])
         if(num_of_word != -1){
           already_found[num_of_word] = 1;
         }
-        printf("clicked\n");
       }
     }
 
