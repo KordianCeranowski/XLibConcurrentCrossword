@@ -14,8 +14,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Memory Sharing
 
-#define KEY 123461
+#define KEY 222343
 int *already_found;
+int local_found[COUNT_OF_PASSWORDS];
 int shared_id;
 
 void initialize_shared_memory(){
@@ -260,6 +261,20 @@ void draw_crossword(){
   draw_word(8,-1,"5",0,1);
   //draw_word(8,0,"NOS",0,1);
 }
+
+void update_data(){
+  for (size_t i = 0; i < COUNT_OF_PASSWORDS; i++) {
+    local_found[i] = already_found[i];
+  }
+}
+
+int update_needed(){
+  for (size_t i = 0; i < COUNT_OF_PASSWORDS; i++)
+    if(local_found[i] != already_found[i])
+      return 1;
+  return 0;
+}
+
 void draw_found_words(){
   if(already_found[0] == 1)
     draw_word(0,5,"PEJORATYWNY",1,0);
@@ -271,7 +286,10 @@ void draw_found_words(){
     draw_word(5,2,"PIES",1,0);
   if(already_found[4] == 1)
     draw_word(8,0,"NOS",0,1);
+  update_data();
 }
+
+
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -320,7 +338,6 @@ void type_letter(){
 ////////////////////////////////////////////////////////////////////////////////
 
 
-
 int main(int argc, char *argv[])
 {
   initialize_shared_memory();
@@ -329,33 +346,41 @@ int main(int argc, char *argv[])
   draw_legend();
   reset_pass();
 
-
   while (1) {
     show_state();
     draw_found_words();
 
-    if(event.xany.window == tf_num_window){
-      if(event.type == KeyPress){
-        set_num_of_word((char)event.xkey.keycode - 10);
-      }
+    if (QLength(display) <= 0){
+      XFillRectangle(display, window, gc, 0, 0, 0, 0);
+      update_data();
+      draw_found_words();
     }
-
-    if(event.xany.window == tf_text_window){
-      if(event.type == KeyPress){
-        count = XLookupString(&event.xkey, bytes, 3, &character, &xComposeStatus);
-        type_letter();
-      }
-    }
-
-    if(event.xany.window == btn_window){
-      if(event.type == ButtonPress){
-        if(num_of_word != -1){
-          already_found[num_of_word] = 1;
+    else{
+      if(event.xany.window == tf_num_window){
+        if(event.type == KeyPress){
+          set_num_of_word((char)event.xkey.keycode - 10);
         }
       }
+
+      if(event.xany.window == tf_text_window){
+        if(event.type == KeyPress){
+          count = XLookupString(&event.xkey, bytes, 3, &character, &xComposeStatus);
+          type_letter();
+        }
+      }
+
+      if(event.xany.window == btn_window){
+        if(event.type == ButtonPress){
+          if(num_of_word != -1){
+            already_found[num_of_word] = 1;
+          }
+        }
+      }
+      XNextEvent(display, &event);
     }
 
-    XNextEvent(display, &event);
+    //nanosleep(1000000000);
+
   }
 
   return 0;
