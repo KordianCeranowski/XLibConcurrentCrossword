@@ -14,27 +14,23 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Memory Sharing
 
-char already_found[COUNT_OF_PASSWORDS];
+int *already_found;
 
-#define KEY 123456
+#define KEY 123461
 int shared_id;
-SizeMem = sizeof(*already_found) * COUNT_OF_PASSWORDS;
 
 void initialize_shared_memory(){
-  if((shared_id = shmget(KEY, sizeof(char) * COUNT_OF_PASSWORDS, 0666 | IPC_CREAT | IPC_EXCL)) != -1)
-  {
-      *already_found = (char *)shmat(shared_id, 0, 0);
-
-      printf("STARTING GAME\n");
+  if((shared_id = shmget(KEY, sizeof(int) * COUNT_OF_PASSWORDS, 0666 | IPC_CREAT | IPC_EXCL)) != -1){
+      already_found = (int *)shmat(shared_id, 0, 0);
       for (size_t i = 0; i < COUNT_OF_PASSWORDS; i++) {
         already_found[i] = 0;
       }
+      printf("STARTING GAME\n");
       show_state();
   }
-  else
-  {
-      shared_id = shmget(KEY, sizeof(char) * COUNT_OF_PASSWORDS, 0666 | IPC_CREAT);
-      *already_found = (char *)shmat(shared_id, 0, 0);
+  else{
+      shared_id = shmget(KEY, sizeof(int) * COUNT_OF_PASSWORDS, 0666 | IPC_CREAT);
+      already_found = (int *)shmat(shared_id, 0, 0);
       printf("JOINING GAME\n");
       show_state();
   }
@@ -349,7 +345,7 @@ int main(int argc, char *argv[])
     }
 
     if(event.xany.window == btn_window){
-      if(event.type == ButtonRelease){
+      if(event.type == ButtonPress){
         if(num_of_word != -1){
           already_found[num_of_word] = 1;
         }
