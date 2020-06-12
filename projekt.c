@@ -23,7 +23,7 @@ char all_passwords[COUNT_OF_PASSWORDS][MAX_PASS_SIZE] = {
 ////////////////////////////////////////////////////////////////////////////////
 // Memory Sharing
 
-#define KEY 224545
+#define KEY 214589
 int *already_found;
 int local_found[COUNT_OF_PASSWORDS];
 int shared_id;
@@ -395,16 +395,12 @@ int main(int argc, char *argv[])
     else{
       if(event.xany.window == tf_num_window){
         if(event.type == KeyPress){
-
-          XFillRectangle(display, window, gc, 0, 0, 0, 0);
           set_num_of_word((char)event.xkey.keycode - 10);
         }
       }
 
       if(event.xany.window == tf_text_window){
         if(event.type == KeyPress){
-
-          XFillRectangle(display, window, gc, 0, 0, 0, 0);
           count = XLookupString(&event.xkey, bytes, 3, &character, &xComposeStatus);
           type_letter();
         }
@@ -414,11 +410,11 @@ int main(int argc, char *argv[])
         if(event.type == ButtonPress){
           if(num_of_word != -1){
             check();
-            XFillRectangle(display, window, gc, 0, 0, 0, 0);
           }
         }
       }
-      XFillRectangle(display, window, gc, 0, 0, 0, 0);
+
+      draw_found_words();
       XNextEvent(display, &event);
     }
 
