@@ -10,11 +10,20 @@
 #include <string.h>
 
 #define COUNT_OF_PASSWORDS 5
+#define MAX_PASS_SIZE 18
+
+char all_passwords[COUNT_OF_PASSWORDS][MAX_PASS_SIZE] = {
+  "pejoratywny       ",
+  "jez               ",
+  "aparat            ",
+  "pies              ",
+  "nos               "
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 // Memory Sharing
 
-#define KEY 222343
+#define KEY 224545
 int *already_found;
 int local_found[COUNT_OF_PASSWORDS];
 int shared_id;
@@ -37,11 +46,11 @@ void initialize_shared_memory(){
 }
 
 void show_state(){
-  printf("[");
-  for (size_t i = 0; i < COUNT_OF_PASSWORDS; i++) {
-    printf("%d, ", already_found[i]);
-  }
-  printf("\b\b]\n");
+  // printf("[");
+  // for (size_t i = 0; i < COUNT_OF_PASSWORDS; i++) {
+  //   printf("%d, ", already_found[i]);
+  // }
+  // printf("\b\b]\n");
 }
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -311,13 +320,12 @@ XComposeStatus xComposeStatus;
 KeySym character;
 int count;
 char bytes[3];
-#define MAX_IN_SIZE 18
 
 int position_in_pass = 0;
-char typed_pass[MAX_IN_SIZE];
+char typed_pass[MAX_PASS_SIZE];
 
 void reset_pass(){
-  for (size_t i = 0; i < MAX_IN_SIZE; i++) {
+  for (size_t i = 0; i < MAX_PASS_SIZE; i++) {
     typed_pass[i] = (char)32;
   }
 }
@@ -326,14 +334,43 @@ void type_letter(){
     position_in_pass--;
     typed_pass[position_in_pass] = (char)32;
   }
-  else if(bytes[0] >= 97 && bytes[0] <= 122 && position_in_pass < MAX_IN_SIZE){
+  else if(bytes[0] >= 97 && bytes[0] <= 122 && position_in_pass < MAX_PASS_SIZE){
     typed_pass[position_in_pass] = bytes[0];
     position_in_pass++;
   }
 
   XDrawImageString(display, tf_text_window, gc,
     10, 18,
-    &typed_pass, MAX_IN_SIZE);
+    &typed_pass, MAX_PASS_SIZE);
+}
+
+int password_matches(){
+  char *answer = all_passwords[num_of_word];
+  for (size_t i = 0; i < MAX_PASS_SIZE; i++)
+    if(typed_pass[i] != answer[i])
+      return 0;
+  return 1;
+}
+
+void clean_input(){
+  position_in_pass = 0;
+  reset_pass();
+  XDrawImageString(display, tf_text_window, gc,
+    10, 18,
+    &typed_pass, MAX_PASS_SIZE);
+
+  num_of_word = -1;
+  XDrawImageString(display, tf_num_window, gc,
+    12,18,
+    " ", 1);
+}
+
+void check(){
+  if(password_matches()){
+    already_found[num_of_word] = 1;
+    clean_input();
+  }
+  else printf("wrong\n");
 }
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -358,12 +395,16 @@ int main(int argc, char *argv[])
     else{
       if(event.xany.window == tf_num_window){
         if(event.type == KeyPress){
+
+          XFillRectangle(display, window, gc, 0, 0, 0, 0);
           set_num_of_word((char)event.xkey.keycode - 10);
         }
       }
 
       if(event.xany.window == tf_text_window){
         if(event.type == KeyPress){
+
+          XFillRectangle(display, window, gc, 0, 0, 0, 0);
           count = XLookupString(&event.xkey, bytes, 3, &character, &xComposeStatus);
           type_letter();
         }
@@ -372,10 +413,12 @@ int main(int argc, char *argv[])
       if(event.xany.window == btn_window){
         if(event.type == ButtonPress){
           if(num_of_word != -1){
-            already_found[num_of_word] = 1;
+            check();
+            XFillRectangle(display, window, gc, 0, 0, 0, 0);
           }
         }
       }
+      XFillRectangle(display, window, gc, 0, 0, 0, 0);
       XNextEvent(display, &event);
     }
 
