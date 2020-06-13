@@ -23,7 +23,7 @@ char all_passwords[COUNT_OF_PASSWORDS][MAX_PASS_SIZE] = {
 ////////////////////////////////////////////////////////////////////////////////
 // Memory Sharing
 
-#define KEY 214589
+#define KEY 2188534
 int *already_found;
 int local_found[COUNT_OF_PASSWORDS];
 int shared_id;
@@ -304,17 +304,6 @@ void draw_found_words(){
 
 ////////////////////////////////////////////////////////////////////////////////
 // Variables
-int num_of_word = -1;
-void set_num_of_word(char new_num_of_word){
-  if(new_num_of_word >= 0 && new_num_of_word < COUNT_OF_PASSWORDS){
-    num_of_word = new_num_of_word;
-
-    char* temp = (char*)num_of_word + 49;
-    XDrawImageString(display, tf_num_window, gc,
-      12,18,
-      &temp, 1);
-  }
-}
 
 XComposeStatus xComposeStatus;
 KeySym character;
@@ -324,12 +313,34 @@ char bytes[3];
 int position_in_pass = 0;
 char typed_pass[MAX_PASS_SIZE];
 
-void reset_pass(){
+int num_of_word = -1;
+
+void set_num_of_word(char new_num_of_word){
+  if(new_num_of_word >= 0 && new_num_of_word < COUNT_OF_PASSWORDS){
+    num_of_word = new_num_of_word;
+  }
+}
+
+void draw_num(){
+      char* temp = (char*)num_of_word + 49;
+      XDrawImageString(display, tf_num_window, gc,
+        12,18,
+        &temp, 1);
+}
+
+void reset_pass_in_memory(){
   for (size_t i = 0; i < MAX_PASS_SIZE; i++) {
     typed_pass[i] = (char)32;
   }
 }
-void type_letter(){
+
+void draw_pass(){
+    XDrawImageString(display, tf_text_window, gc,
+      10, 18,
+      &typed_pass, MAX_PASS_SIZE);
+}
+
+void save_letter_from_bytes_to_memory(){
   if(bytes[0] == 8 && position_in_pass > 0){
     position_in_pass--;
     typed_pass[position_in_pass] = (char)32;
@@ -338,10 +349,6 @@ void type_letter(){
     typed_pass[position_in_pass] = bytes[0];
     position_in_pass++;
   }
-
-  XDrawImageString(display, tf_text_window, gc,
-    10, 18,
-    &typed_pass, MAX_PASS_SIZE);
 }
 
 int password_matches(){
@@ -354,7 +361,7 @@ int password_matches(){
 
 void clean_input(){
   position_in_pass = 0;
-  reset_pass();
+  reset_pass_in_memory();
   XDrawImageString(display, tf_text_window, gc,
     10, 18,
     &typed_pass, MAX_PASS_SIZE);
@@ -375,36 +382,54 @@ void check(){
 ////////////////////////////////////////////////////////////////////////////////
 
 
+int pass_needs_update = 0;
+int num_needs_update = 0;
+
+
 int main(int argc, char *argv[])
 {
   initialize_shared_memory();
   set_up_variables();
   draw_crossword();
   draw_legend();
-  reset_pass();
+  reset_pass_in_memory();
 
   while (1) {
     show_state();
-    draw_found_words();
 
     if (QLength(display) <= 0){
       XFillRectangle(display, window, gc, 0, 0, 0, 0);
-      update_data();
+
+      if(num_needs_update){
+        set_num_of_word((char)event.xkey.keycode - 10);
+        draw_num();
+        printf("num : %i\n", num_of_word);
+        num_needs_update = 0;
+      }
+
+      if(pass_needs_update){
+        count = XLookupString(&event.xkey, bytes, 3, &character, &xComposeStatus);
+        save_letter_from_bytes_to_memory();
+        draw_pass();
+        printf("text: %s\n", typed_pass);
+        pass_needs_update = 0;
+      }
+
       draw_found_words();
     }
     else{
-      draw_found_words();
+
+      XNextEvent(display, &event);
 
       if(event.xany.window == tf_num_window){
         if(event.type == KeyPress){
-          set_num_of_word((char)event.xkey.keycode - 10);
+          num_needs_update = 1;
         }
       }
 
       if(event.xany.window == tf_text_window){
         if(event.type == KeyPress){
-          count = XLookupString(&event.xkey, bytes, 3, &character, &xComposeStatus);
-          type_letter();
+          pass_needs_update = 1;
         }
       }
 
@@ -416,8 +441,6 @@ int main(int argc, char *argv[])
         }
       }
 
-      draw_found_words();
-      XNextEvent(display, &event);
     }
   }
 
