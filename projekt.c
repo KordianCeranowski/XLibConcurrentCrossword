@@ -23,7 +23,7 @@ char all_passwords[COUNT_OF_PASSWORDS][MAX_PASS_SIZE] = {
 ////////////////////////////////////////////////////////////////////////////////
 // Memory Sharing
 
-#define KEY 2343234
+#define KEY 123456
 int *already_found;
 int local_found[COUNT_OF_PASSWORDS];
 int shared_id;
@@ -119,8 +119,6 @@ void set_up_graphics(){
   colormap = DefaultColormap(display, screen);
   XParseColor(display, colormap, "rgb:cc/cc/cc", &lightgray);
   XAllocColor(display, colormap, &lightgray);
-  XParseColor(display, colormap, "rgb:dd/dd/dd", &darkgray);
-  XAllocColor(display, colormap, &darkgray);
 }
 
 void set_up_btn(){
@@ -186,7 +184,7 @@ void set_up_variables(){
   set_up_graphics();
 }
 
-set_up_inputs(){
+int set_up_inputs(){
   set_up_btn();
   set_up_tf();
   draw_input_captions();
@@ -238,7 +236,7 @@ void draw_multiple_lines(int x, int y, int h, char texts[8 + COUNT_OF_PASSWORDS]
 
 ////////////////////////////////////////////////////////////////////////////////
 // Setup functions
-void draw_word_table(x, y, x_diff, y_diff){
+void draw_word_table(int x, int y, int x_diff, int y_diff){
   for(int i = 0; i < x_diff; i++)
     for(int j = 0; j < y_diff; j++)
       square(x+i,y+j);
@@ -316,8 +314,6 @@ int alert_current = 1;
 int alert_x = 545;
 int alert_y = 500;
 
-
-
 void alert_right(){
   XDrawImageString(display, drawable_window, gc,
      alert_x, alert_y,
@@ -357,8 +353,6 @@ int all_are_found(){
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-
-
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -438,7 +432,6 @@ void check(){
   }
   else{
     alert_wrong();
-    printf("wrong\n");
   }
 }
 
@@ -471,7 +464,6 @@ int main(int argc, char *argv[])
         alert_clean();
         set_num_of_word((char)event.xkey.keycode - 10);
         draw_num();
-        printf("num : %i\n", num_of_word);
         num_needs_update = 0;
       }
 
@@ -480,7 +472,6 @@ int main(int argc, char *argv[])
         count = XLookupString(&event.xkey, bytes, 3, &character, &xComposeStatus);
         save_letter_from_bytes_to_memory();
         draw_pass();
-        printf("text: %s\n", typed_pass);
         pass_needs_update = 0;
       }
 
